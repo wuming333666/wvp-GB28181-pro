@@ -24,6 +24,9 @@ hs_err_pid*
 /.idea/*
 /target/*
 /.idea/
+/.cursor/
+/.codegraph
+/.claude
 /target/
 
 /src/main/resources/static/
