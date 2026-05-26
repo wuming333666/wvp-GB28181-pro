@@ -18,7 +18,11 @@ public class RTPServerParam {
     private String app;
     private String streamId;
     /**
-     * 开启rtpServer时使用的ssrc，开启rtpServer时会根据这个ssrc进行校验，如果不填则不校验
+     * 是否将ssrc传递给zlm做校验
+     */
+    private boolean ssrcCheck;
+    /**
+     * 开启rtpServer时使用的ssrc
      */
     private Long ssrc;
     private Integer port;

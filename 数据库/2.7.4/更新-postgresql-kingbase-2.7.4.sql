@@ -41,7 +41,7 @@ ALTER table wvp_device_channel ADD COLUMN IF NOT EXISTS map_level integer defaul
 ALTER table wvp_common_group ADD COLUMN IF NOT EXISTS alias varchar(255) default null;
 ALTER table wvp_stream_proxy DROP COLUMN IF EXISTS enable_remove_none_reader;
 
-drop index uk_media_server_unique_ip_http_port on wvp_media_server;
+DROP INDEX IF EXISTS uk_media_server_unique_ip_http_port;
 
 ALTER table wvp_device DROP COLUMN IF EXISTS register_time;
 ALTER table wvp_device DROP COLUMN IF EXISTS keepalive_time;
@@ -56,7 +56,7 @@ create table IF NOT EXISTS wvp_alarm (
     latitude double precision,
     alarm_type integer,
     alarm_time bigint
-)
+);
 COMMENT ON COLUMN wvp_alarm.id IS '主键ID';
 COMMENT ON COLUMN wvp_alarm.channel_id IS '关联通道的数据库id';
 COMMENT ON COLUMN wvp_alarm.description IS '报警描述';
@@ -66,6 +66,26 @@ COMMENT ON COLUMN wvp_alarm.longitude IS '报警附带的经度';
 COMMENT ON COLUMN wvp_alarm.latitude IS '报警附带的纬度';
 COMMENT ON COLUMN wvp_alarm.alarm_type IS '报警类别';
 COMMENT ON COLUMN wvp_alarm.alarm_time IS '报警时间';
+
+
+/*
+* 20260521 添加wvp_device_channel唯一约束，防止通道重复写入
+*/
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes
+                   WHERE tablename = 'wvp_device_channel'
+                     AND indexname = 'uk_device_channel_source') THEN
+        -- 先清理可能的重复数据
+        DELETE FROM wvp_device_channel t1
+        USING wvp_device_channel t2
+        WHERE t1.id < t2.id
+          AND t1.data_device_id = t2.data_device_id
+          AND t1.device_id = t2.device_id;
+        ALTER TABLE wvp_device_channel ADD CONSTRAINT uk_device_channel_source UNIQUE (data_device_id, device_id);
+    END IF;
+END;
+$$;
 
 
 /*
